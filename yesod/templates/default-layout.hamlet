@@ -42,9 +42,3 @@ $else
         <div .row>
             <div .col-md-12>
                 ^{widget}
-
-<!-- Footer -->
-<footer .footer>
-    <div .container>
-        <p .text-muted>
-            #{appCopyright $ appSettings master}
