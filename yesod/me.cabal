@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7069dcf79d576c706fb934186d6c8a708191b4e8754cf68585746769098fcec2
+-- hash: fc363e655ce0e3224280b732eb124a5e09e0df5aee852c3e7c9fcd168e095351
 
 name:           me
 version:        0.0.1
@@ -24,7 +24,6 @@ library
       Application
       Foundation
       Handler.Calendar
-      Handler.Comment
       Handler.Common
       Handler.Home
       Handler.Profile
@@ -141,7 +140,6 @@ test-suite me-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Handler.CommentSpec
       Handler.CommonSpec
       Handler.HomeSpec
       Handler.ProfileSpec
