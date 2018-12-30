@@ -1,0 +1,5 @@
+.stack-work
+yesod-devel
+static/tmp
+*.sqlite*
+config/client_session_key.aes

@@ -1,0 +1,26 @@
+.calendar-row {
+}
+.calendar-cell {
+    float: left;
+    
+    width: 40px;
+    height: 40px;
+    line-height: 40px; /* makes lines occupy all space, v-centering text */
+    text-align: center;
+    border: 1px dotted grey;
+}
+.calendar-cell:first-child {
+    clear: left;
+}
+.calendar-cell.dummy {
+    border: none;
+}
+.calendar-cell.today {
+    border: 1px solid black;
+}
+.calendar-cell.event-0 {
+    background-color: #dff9ff;
+}
+.calendar-cell.event-1 {
+    background-color: #ffcccc;
+}

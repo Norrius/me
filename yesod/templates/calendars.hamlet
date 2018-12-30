@@ -1,0 +1,3 @@
+<h1>All calendars
+$forall Entity calendarId calendar <- calendars
+    <li><a href=@{CalendarNoMonthR calendarId}>#{calendarName calendar}</a>
