@@ -1,0 +1,37 @@
+function pad(x) {
+  if (parseInt(x) < 10) {
+    return "0" + x;  // cast to string as a side effect
+  } else {
+    return "" + x;  // just in case also cast it to string
+  }
+}
+
+$(function() {
+  $('div.calendar-cell').click(function(){
+    let day = $(this).text();
+    $.ajax({
+      url: '@{CalendarsR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        calendar: #{toJSON (fromSqlKey calendarId)},
+        // Build an ISO date. The day is the clicked cell's text:
+        date: "#{toJSON year}-" + pad(#{toJSON month}) + "-" + pad($(this).text()),
+      }),
+      context: this,  // set `this` in callbacks to current $(this)
+      success: function (data) {
+        console.log(data);
+        // Toggle cell color:
+        if ($(this).hasClass("event-0")) {
+          $(this).removeClass("event-0").addClass("event-1");
+        } else {
+          $(this).removeClass("event-1").addClass("event-0");
+        }
+      },
+      error: function (data) {
+        console.log("Error toggling event");
+        console.log(data);
+      },
+    });
+  });
+});

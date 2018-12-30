@@ -8,7 +8,7 @@ import Import
 import Data.Time.Calendar
 import Data.Time.Calendar.WeekDate
 import Data.Time.LocalTime
--- import Database.Persist.Sql (fromSqlKey)
+import Database.Persist.Sql (fromSqlKey)
 
 trd :: (a, b, c) -> c
 trd (_, _, x) = x
@@ -39,8 +39,8 @@ getCalendarR calendarId year month = do
     let firstDay = fromGregorian year month 1
     let (_, _, firstDOW) = toWeekDate firstDay
     let firstDayOffset = firstDOW - 1
-    let firstDayOffsetL = [1..firstDayOffset]
-    let monthLengthL = [1..(gregorianMonthLength year month)]
+    let firstDayOffsetL = [1..firstDayOffset]  -- apparently you cannot iterate 0..n in Hamlet
+    let monthLengthL = [1..(gregorianMonthLength year month)] -- but you can iterate through a list
     let prevMonth = addGregorianMonthsClip (-1) firstDay
     let nextMonth = addGregorianMonthsClip 1 firstDay
 
@@ -53,9 +53,24 @@ getCalendarR calendarId year month = do
         setTitle "Calendar"
         $(widgetFile "calendar")
 
-postCalendarR :: CalendarId -> Integer -> Int -> Handler Html
-postCalendarR calendarId year month = undefined
+-- Toggles an event for a calendar-date pair.
+postCalendarsR :: Handler Value
+postCalendarsR = do
+    -- requireJsonBody will parse the request body into the appropriate type,
+    -- or return a 400 status code if the request JSON is invalid.
+    -- (The ToJSON and FromJSON instances are derived in the config/models file).
+    requestEvent <- (requireJsonBody :: Handler CalendarEvent)
+    maybeDbEvent <- runDB $
+        selectFirst [CalendarEventCalendar ==. (calendarEventCalendar requestEvent),
+                     CalendarEventDate ==. (calendarEventDate requestEvent)] []
 
+    runDB $ case maybeDbEvent of
+        Just dbEvent -> delete (entityKey dbEvent)
+        Nothing -> insert_ requestEvent
+
+    return $ toJSON ("ok"::String)
+
+-- CSS class for an event's calendar cell
 eventClass' :: [Int] -> Integer -> Int -> Int -> Integer -> Int -> Int -> String
 eventClass' eventDays cYear cMonth cDay year month day
     | (cYear, cMonth, cDay) == (year, month, day) = eventType ++ " today"

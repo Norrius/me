@@ -18,7 +18,7 @@ Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived
     deriving Show
 Calendar
     name Text
-CalendarEvent
+CalendarEvent json -- Adding "json" causes ToJSON and FromJSON instances to be derived.
     calendar CalendarId
     date Day
     deriving Show
