@@ -16,6 +16,8 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 
+import Data.Aeson (decode, withObject, (.:), (.:?), (.!=))
+
 -- Used only when in "auth-dummy-login" setting is enabled.
 import Yesod.Auth.Dummy
 
@@ -236,6 +238,25 @@ instance YesodPersistRunner App where
     getDBRunner :: Handler (DBRunner App, Handler ())
     getDBRunner = defaultGetDBRunner appConnPool
 
+-- Aux struct for parsing Google user data
+data UserResponse = UserResponse {
+      rName :: Text
+    , rProfile :: Text
+    , rPicture :: Text
+    , rEmail :: Text
+    , rEmailVerified :: Bool
+    } deriving Show
+
+-- Only includes a small subset of keys, in particular,
+-- no "sub" because we receive ident from another source (credsIdent).
+instance FromJSON UserResponse where
+    parseJSON = withObject "UserResponse" $ \v -> UserResponse
+        <$> v .: "name"
+        <*> v .:? "profile" .!= ""
+        <*> v .:? "picture" .!= ""
+        <*> v .: "email"
+        <*> v .: "email_verified"
+
 instance YesodAuth App where
     type AuthId App = UserId
 
@@ -252,13 +273,27 @@ instance YesodAuth App where
     authenticate :: (MonadHandler m, HandlerSite m ~ App)
                  => Creds App -> m (AuthenticationResult App)
     authenticate creds = liftHandler $ runDB $ do
+        -- parse extra to extract real name
+        -- credsExtra creds = [("accessToken","abc123"), ("userResponse","{\n\"json\": \"data\"\n}")]
+        $logDebug $ pack . show . credsExtra $ creds
+        let userResponseL = [snd x | x <- credsExtra creds, fst x == "userResponse"]
+        let maybeName = listToMaybe userResponseL >>= decodeUserResponse >>= return . rName
+        let name = case maybeName of
+                Just x -> x
+                Nothing -> "User" :: Text
+
+        -- return known user or create unknown user
         x <- getBy $ UniqueUser $ credsIdent creds
         case x of
             Just (Entity uid _) -> return $ Authenticated uid
             Nothing -> Authenticated <$> insert User
                 { userIdent = credsIdent creds
+                , userName = name
                 , userPassword = Nothing
                 }
+        where
+            decodeUserResponse :: Text -> Maybe UserResponse
+            decodeUserResponse = decode . encodeUtf8 . fromStrict
 
     authPlugins :: App -> [AuthPlugin App]
     authPlugins app = [oauth2Google clientId clientSecret] ++ extraAuthPlugins

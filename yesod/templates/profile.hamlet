@@ -1,10 +1,10 @@
 <div .ui.container>
 
     <h1>
-      Access granted!
+      User Profile
 
     <p>
-      This page is protected and access is allowed only for authenticated users.
+      There are no user settings (yet), but some parts of the website require authentication.
 
     <p>
-      Your data is protected with us <strong><span class="username">#{userIdent user}</span></strong>!
+      You are logged in as <strong><span class="username">#{userName user}</span></strong>.
