@@ -19,9 +19,9 @@ import Control.Monad.Logger (LogSource)
 -- Used only when in "auth-dummy-login" setting is enabled.
 import Yesod.Auth.Dummy
 
-import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
-import Yesod.Default.Util   (addStaticContentExternal)
-import Yesod.Core.Types     (Logger)
+import Yesod.Auth.OAuth2.Google (oauth2Google)
+import Yesod.Default.Util       (addStaticContentExternal)
+import Yesod.Core.Types         (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
@@ -260,11 +260,14 @@ instance YesodAuth App where
                 , userPassword = Nothing
                 }
 
-    -- You can add other plugins like Google Email, email or OAuth here
     authPlugins :: App -> [AuthPlugin App]
-    authPlugins app = [authOpenId Claimed []] ++ extraAuthPlugins
-        -- Enable authDummy login if enabled.
-        where extraAuthPlugins = [authDummy | appAuthDummyLogin $ appSettings app]
+    authPlugins app = [oauth2Google clientId clientSecret] ++ extraAuthPlugins
+        where
+            -- Enable authDummy login if enabled:
+            extraAuthPlugins = [authDummy | appAuthDummyLogin $ appSettings app]
+            -- Get Google keys from settings (i.e. from env):
+            clientId = (appAuthGoogleClientId $ appSettings app)
+            clientSecret = (appAuthGoogleClientSecret $ appSettings app)
 
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult

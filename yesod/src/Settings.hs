@@ -61,6 +61,9 @@ data AppSettings = AppSettings
 
     , appAuthDummyLogin         :: Bool
     -- ^ Indicate if auth dummy login should be enabled.
+
+    , appAuthGoogleClientId     :: Text
+    , appAuthGoogleClientSecret :: Text
     }
 
 instance FromJSON AppSettings where
@@ -90,6 +93,9 @@ instance FromJSON AppSettings where
         appAnalytics              <- o .:? "analytics"
 
         appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= dev
+
+        appAuthGoogleClientId     <- o .: "google-client-id"
+        appAuthGoogleClientSecret <- o .: "google-client-secret"
 
         return AppSettings {..}
 

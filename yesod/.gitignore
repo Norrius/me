@@ -1,5 +1,8 @@
 .stack-work
 yesod-devel
 static/tmp
+*.cabal
 *.sqlite*
 config/client_session_key.aes
+env
+
