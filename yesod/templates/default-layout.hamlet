@@ -11,14 +11,24 @@
 
         <div #navbar .collapse.navbar-collapse>
             <ul .nav.navbar-nav>
-                $forall MenuItem label route _ <- navbarLeftFilteredMenuItems
-                    <li :Just route == mcurrentRoute:.active>
-                        <a href="@{route}">#{label}
+                $forall MenuItem label link _ <- navbarLeftFilteredMenuItems
+                    $case link
+                        $of Left route
+                            <li :Just route == mcurrentRoute:.active>
+                                <a href="@{route}">#{label}
+                        $of Right url
+                            <li>
+                                <a href="#{url}" target="_blank">#{label}
 
             <ul .nav.navbar-nav.navbar-right>
-                $forall MenuItem label route _ <- navbarRightFilteredMenuItems
-                    <li :Just route == mcurrentRoute:.active>
-                        <a href="@{route}">#{label}
+                $forall MenuItem label link _ <- navbarRightFilteredMenuItems
+                    $case link
+                        $of Left route
+                            <li :Just route == mcurrentRoute:.active>
+                                <a href="@{route}">#{label}
+                        $of Right url
+                            <li>
+                                <a href="#{url}" target="_blank">#{label}
 
 <!-- Page Contents -->
 

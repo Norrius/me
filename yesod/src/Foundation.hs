@@ -42,7 +42,7 @@ data App = App
 
 data MenuItem = MenuItem
     { menuItemLabel :: Text
-    , menuItemRoute :: Route App
+    , menuItemRoute :: Either (Route App) Text
     , menuItemAccessCallback :: Bool
     }
 
@@ -114,22 +114,27 @@ instance Yesod App where
         let menuItems =
                 [ NavbarLeft $ MenuItem
                     { menuItemLabel = "Home"
-                    , menuItemRoute = HomeR
+                    , menuItemRoute = Left HomeR
                     , menuItemAccessCallback = True
                     }
                 , NavbarLeft $ MenuItem
+                    { menuItemLabel = "GitHub"
+                    , menuItemRoute = Right "https://github.com/Norrius/me"
+                    , menuItemAccessCallback = True
+                    }
+                , NavbarRight $ MenuItem
                     { menuItemLabel = "Profile"
-                    , menuItemRoute = ProfileR
+                    , menuItemRoute = Left ProfileR
                     , menuItemAccessCallback = isJust muser
                     }
                 , NavbarRight $ MenuItem
                     { menuItemLabel = "Login"
-                    , menuItemRoute = AuthR LoginR
+                    , menuItemRoute = Left (AuthR LoginR)
                     , menuItemAccessCallback = isNothing muser
                     }
                 , NavbarRight $ MenuItem
                     { menuItemLabel = "Logout"
-                    , menuItemRoute = AuthR LogoutR
+                    , menuItemRoute = Left (AuthR LogoutR)
                     , menuItemAccessCallback = isJust muser
                     }
                 ]
