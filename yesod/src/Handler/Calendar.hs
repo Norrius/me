@@ -5,10 +5,10 @@
 module Handler.Calendar where
 
 import Import
-import qualified Data.HashMap.Strict as H
 import Data.Time.Calendar (Day, gregorianMonthLength, addGregorianMonthsClip)
 import Data.Time.Calendar.WeekDate
 import Data.Time.LocalTime
+import Data.Aeson.Types (withObject, parseMaybe)
 
 trd :: (a, b, c) -> c
 trd (_, _, x) = x
@@ -88,24 +88,17 @@ getCalendarR calendarId = do
 -- Accepts POST body in the form {"date": "2018-12-31"}
 postCalendarR :: CalendarId -> Handler Value
 postCalendarR calendarId = do
-    _ <- getCalendar calendarId  -- access check
-
-    -- requireJsonBody parses the request body or returns a 400 status code.
+    -- requireJsonBody parses the body to Value or returns a 400 status code.
     value <- requireJsonBody
-    obj <- case value of
-        Object x -> return x
-        _ -> invalidArgs ["Body must be a JSON object"]
-    let maybeValDate = H.lookup "date" obj
-    valDate <- case maybeValDate of
-        Just x -> return x
-        _ -> invalidArgs ["missing key `date`"]
-    strDate <- case valDate of
-        String x -> return x
-        _ -> invalidArgs ["`date` must be a string"]
-    let maybeDate = parseDay . unpack $ strDate
+    let maybeDate = do
+            let parser = withObject "request" $ \o -> o .: "date"
+            strDate <- parseMaybe parser value :: Maybe String
+            parseDay $ unpack strDate
     date <- case maybeDate of
         Just x -> return x
         _ -> invalidArgs ["`date` must be YYYY-MM-DD"]
+
+    _ <- getCalendar calendarId  -- access check
 
     let requestEvent = CalendarEvent calendarId date
     maybeDbEvent <- runDB $
