@@ -7,7 +7,7 @@ User
 Calendar
     name Text
     userId UserId
-CalendarEvent json -- Adding "json" causes ToJSON and FromJSON instances to be derived.
+CalendarEvent
     calendar CalendarId
     date Day
     deriving Show

@@ -11,6 +11,7 @@ module Model where
 
 import ClassyPrelude.Yesod
 import Database.Persist.Quasi
+import Database.Persist.Sql (toSqlKey)
 
 -- You can define all of your database entities in the entities file.
 -- You can find more information on persistent and how to declare entities
@@ -18,3 +19,7 @@ import Database.Persist.Quasi
 -- http://www.yesodweb.com/book/persistent/
 share [mkPersist sqlSettings, mkMigrate "migrateAll"]
     $(persistFileWith lowerCaseSettings "config/models")
+
+-- | Key for the demo calendar, available to unauthenticated users.
+demoCalendar :: Key Calendar
+demoCalendar = toSqlKey 0

@@ -13,6 +13,6 @@
 
 ---------------------------
 
-/calendar CalendarsR GET POST
-/calendar/#CalendarId CalendarR GET
+/calendar CalendarsR GET
+/calendar/#CalendarId CalendarR GET POST
 /calendar/#CalendarId/#Integer/#Int CalendarMonthR GET

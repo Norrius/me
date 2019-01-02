@@ -10,11 +10,10 @@ $(function() {
   $('div.calendar-cell').click(function(){
     let day = $(this).text();
     $.ajax({
-      url: '@{CalendarsR}',
+      url: '@{CalendarR calendarId}',
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        calendar: #{toJSON (fromSqlKey calendarId)},
         // Build an ISO date. The day is the clicked cell's text:
         date: "#{toJSON year}-" + pad(#{toJSON month}) + "-" + pad($(this).text()),
       }),

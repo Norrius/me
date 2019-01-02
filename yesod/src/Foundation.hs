@@ -172,7 +172,8 @@ instance Yesod App where
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
-    -- Calendar handlers check auth by themselves to allow a demo calendar.
+
+    -- Calendar handlers check auth by themselves to allow access to demo calendar:
     isAuthorized CalendarsR _ = return Authorized
     isAuthorized (CalendarR _) _ = return Authorized
     isAuthorized (CalendarMonthR _ _ _) _ = return Authorized
