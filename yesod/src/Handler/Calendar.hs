@@ -8,26 +8,41 @@ import Import
 import Data.Time.Calendar
 import Data.Time.Calendar.WeekDate
 import Data.Time.LocalTime
-import Database.Persist.Sql (fromSqlKey)
+import Database.Persist.Sql (fromSqlKey, toSqlKey)
 
 trd :: (a, b, c) -> c
 trd (_, _, x) = x
 
 getCalendarsR :: Handler Html
 getCalendarsR = do
-    calendars <- runDB $ selectList ([]::[Filter Calendar]) []
+    maybeUserId <- maybeAuthId
+    calendars <- runDB $ case maybeUserId of
+        Just userId -> selectList [CalendarUserId ==. userId] [Asc CalendarName]
+        Nothing -> selectList [CalendarId ==. (toSqlKey 0)] [] -- hardcoded demo calendar
     defaultLayout $ do
         setTitle "Calendars"
         $(widgetFile "calendars")
 
-getCalendarNoMonthR :: CalendarId -> Handler Html
-getCalendarNoMonthR calendarId = do
+getCalendarR :: CalendarId -> Handler Html
+getCalendarR calendarId = do
     (year, month, _) <- liftIO getToday >>= return . toGregorian
-    redirect (CalendarR calendarId year month)
+    redirect (CalendarMonthR calendarId year month)
 
-getCalendarR :: CalendarId -> Integer -> Int -> Handler Html
-getCalendarR calendarId year month = do
-    calendar <- runDB $ get404 calendarId
+
+getCalendarMonthR :: CalendarId -> Integer -> Int -> Handler Html
+getCalendarMonthR calendarId year month = do
+    -- get calendar, if the user has access
+    maybeUserId <- maybeAuthId
+    maybeCalendar <- runDB $ case maybeUserId of
+        Just userId -> selectFirst [CalendarId ==. calendarId,
+                                    CalendarUserId ==. userId] []
+        Nothing -> selectFirst [CalendarId ==. calendarId,-- hardcoded demo calendar
+                                CalendarId ==. (toSqlKey 0)] [] -- hackity hack
+    calendar <- case maybeCalendar of
+        Just (Entity _ record) -> return record
+        Nothing -> notFound
+
+    -- get calendar events
     events <- runDB $ 
         selectList [CalendarEventCalendar ==. calendarId, 
                     CalendarEventDate >=. (fromGregorian year month 1),

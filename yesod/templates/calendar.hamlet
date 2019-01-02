@@ -3,10 +3,10 @@
         <span style="color: #aaa">Calendar</span> #{calendarName calendar}
     Today: #{formatDay today}<br>
     $with (pYear, pMonth, _) <- toGregorian prevMonth
-        <a href=@{CalendarR calendarId pYear pMonth}>#{formatMonth prevMonth}</a> 
+        <a href=@{CalendarMonthR calendarId pYear pMonth}>#{formatMonth prevMonth}</a> 
     &lt; <b>#{formatMonth firstDay}</b> &gt; 
     $with (nYear, nMonth, _) <- toGregorian nextMonth
-        <a href=@{CalendarR calendarId nYear nMonth}>#{formatMonth nextMonth}</a>
+        <a href=@{CalendarMonthR calendarId nYear nMonth}>#{formatMonth nextMonth}</a>
     <!-- $forall Entity _ event <- events -->
         <!-- <li>#{formatDay $ calendarEventDate event} -->
     <br><br>

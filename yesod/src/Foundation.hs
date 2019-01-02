@@ -172,9 +172,10 @@ instance Yesod App where
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
+    -- Calendar handlers check auth by themselves to allow a demo calendar.
     isAuthorized CalendarsR _ = return Authorized
-    isAuthorized (CalendarNoMonthR _) _ = return Authorized
-    isAuthorized (CalendarR _ _ _) _ = return Authorized
+    isAuthorized (CalendarR _) _ = return Authorized
+    isAuthorized (CalendarMonthR _ _ _) _ = return Authorized
 
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function
@@ -228,7 +229,7 @@ instance YesodBreadcrumbs App where
     breadcrumb (AuthR _) = return ("Login", Just HomeR)
     breadcrumb ProfileR = return ("Profile", Just HomeR)
     breadcrumb CalendarsR = return ("Calendars", Just HomeR)
-    breadcrumb (CalendarR _ _ _) = return ("Calendar", Just CalendarsR)
+    breadcrumb (CalendarMonthR _ _ _) = return ("Calendar", Just CalendarsR)
     breadcrumb  _ = return ("Page", Just HomeR)
 
 -- How to run database actions.
