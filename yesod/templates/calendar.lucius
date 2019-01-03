@@ -8,6 +8,7 @@
     line-height: 40px; /* makes lines occupy all space, v-centering text */
     text-align: center;
     border: 1px dotted grey;
+    margin:-1px 0 0 -1px; /* collapse together borders from adjacent cells */
 }
 .calendar-cell:first-child {
     clear: left;
@@ -16,11 +17,13 @@
     border: none;
 }
 .calendar-cell.today {
-    border: 1px solid black;
+    filter: brightness(80%);
+    border: 2px solid grey;
+    font-weight: bold;
 }
 .calendar-cell.event-0 {
-    background-color: #dff9ff;
+    background-color: #c7c7ff;
 }
 .calendar-cell.event-1 {
-    background-color: #ffcccc;
+    background-color: #ddffcc;
 }

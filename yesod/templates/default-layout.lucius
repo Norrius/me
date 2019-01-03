@@ -1,47 +1,76 @@
-.masthead,
+a,
+a:hover,
+a:focus {
+    color: #181994;
+}
+
 .navbar {
-    background-color: rgb(27, 28, 29);
+    min-height: 0;
 }
 
-.navbar-default .navbar-nav > .active > a {
-    background-color: transparent;
-    border-bottom: 2px solid white;
+.navbar li > a {
+    padding-top: 0.7em;
+    padding-bottom: 0.7em;
 }
 
-.navbar-nav {
-    padding-bottom: 1em;
+/* Generated navbar color styles */
+.navbar-default {
+    background-color: #00023c;
+    border-color: #22216d;
+}
+.navbar-default .navbar-text {
+    color: #ecf0f1;
+}
+.navbar-default .navbar-nav > li > a {
+    color: #ecf0f1;
+}
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    color: #ecf0f1;
+}
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+    color: #ecf0f1;
+    background-color: #22216d;
+    background-image: linear-gradient(#00023c, #22216d);
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    color: #ecf0f1;
+    background-color: #22216d;
+}
+.navbar-default .navbar-toggle {
+    border-color: #22216d;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+    background-color: #22216d;
+}
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #ecf0f1;
+}
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+    border-color: #ecf0f1;
+}
+.navbar-default .navbar-link {
+    color: #ecf0f1;
+}
+.navbar-default .navbar-link:hover {
+    color: #ecf0f1;
 }
 
-.masthead {
-    margin-top: -21px;
-    color: white;
-    text-align: center;
-    min-height: 500px;
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav > .active > a,
+    .navbar-default .navbar-nav > .active > a:hover,
+    .navbar-default .navbar-nav > .active > a:focus {
+        color: #ecf0f1;
+        background-color: #22216d;
+        background-image: linear-gradient(to right, #22216d, #00023c);
+    }
 }
-
-.masthead .header {
-    max-width: 700px;
-    margin: 0 auto;
-    font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
-}
-
-.masthead h1.header {
-    margin-top: 1em;
-    margin-bottom: 0em;
-    font-size: 4.5em;
-    line-height: 1.2em;
-    font-weight: normal;
- }
-
-.masthead h2 {
-    font-size: 1.7em;
-    font-weight: normal;
-}
-
-.masthead .btn {
-    margin: 1em 0;
-}
-
 
 /* Common styles for all types */
 .bs-callout {
