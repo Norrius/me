@@ -32,9 +32,13 @@ google-client-secret: "_env:YESOD_GOOGLE_CLIENT_SECRET:client-secret"
 # See https://github.com/yesodweb/yesod/wiki/Configuration#parsing-numeric-values-as-strings
 
 database:
+  user:     "_env:YESOD_PGUSER:postgres"
+  password: "_env:YESOD_PGPASS:''"
+  host:     "_env:YESOD_PGHOST:localhost"
+  port:     "_env:YESOD_PGPORT:5432"
   # See config/test-settings.yml for an override during tests
-  database: "_env:YESOD_SQLITE_DATABASE:me.sqlite3"
-  poolsize: "_env:YESOD_SQLITE_POOLSIZE:10"
+  database: "_env:YESOD_PGDATABASE:me"
+  poolsize: "_env:YESOD_PGPOOLSIZE:10"
 
 copyright: Norrius, 2018
 #analytics: UA-YOURCODE

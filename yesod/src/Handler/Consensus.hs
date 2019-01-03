@@ -27,10 +27,10 @@ getConsensusR pollId = do
     choices <- runDB $ selectList [ChoicePollId ==. pollId] [Desc ChoiceId]
     -- user IDs are themselves unique, so the addition of name doesn't change anything:
     users' <- runDB $ rawSql
-        "select distinct vote.user_id, user.name \
+        "select distinct vote.user_id, \"user\".name \
         \from vote \
         \join choice on vote.choice_id = choice.id \
-        \join user on vote.user_id = user.id \
+        \join \"user\" on vote.user_id = \"user\".id \
         \where choice.poll_id = ? \
         \order by vote.user_id" [toPersistValue pollId]
     let users = map (unSingle . snd) (users' :: [(UserId, Single Text)])
@@ -40,7 +40,7 @@ getConsensusR pollId = do
         \from vote \
         \join choice on vote.choice_id = choice.id \
         \where choice.poll_id = ? \
-        \order by vote.choice_id, vote.user_id " [toPersistValue pollId]
+        \order by vote.choice_id, vote.user_id" [toPersistValue pollId]
     let values = chunks (length users) $ map unSingle (votes' :: [Single Int])
     let table = zip choices values
     $logDebug (pack . show $ values)
