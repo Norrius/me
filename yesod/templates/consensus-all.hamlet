@@ -1,0 +1,6 @@
+<h1>All Polls
+$if null polls
+    No polls!
+$else
+    $forall Entity pollId poll <- polls
+        <li><a href=@{ConsensusR pollId}>#{pollName poll}</a>

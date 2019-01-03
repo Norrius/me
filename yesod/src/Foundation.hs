@@ -178,6 +178,10 @@ instance Yesod App where
     isAuthorized (CalendarR _) _ = return Authorized
     isAuthorized (CalendarMonthR _ _ _) _ = return Authorized
 
+    -- Polls
+    isAuthorized ConsensusAllR _ = return Authorized
+    isAuthorized (ConsensusR _) _ = return Authorized
+
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function
     isAuthorized ProfileR _ = isAuthenticated
@@ -231,6 +235,8 @@ instance YesodBreadcrumbs App where
     breadcrumb ProfileR = return ("Profile", Just HomeR)
     breadcrumb CalendarsR = return ("Calendars", Just HomeR)
     breadcrumb (CalendarMonthR _ _ _) = return ("Calendar", Just CalendarsR)
+    breadcrumb ConsensusAllR = return ("Polls", Just HomeR)
+    breadcrumb (ConsensusR _) = return ("Poll", Just ConsensusAllR)
     breadcrumb  _ = return ("Page", Just HomeR)
 
 -- How to run database actions.

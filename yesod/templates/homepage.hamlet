@@ -25,3 +25,6 @@
 
                     <li .list-group-item>
                         <a href="@{CalendarsR}">Calendar</a>: mark dates in a simple calendar widget.
+
+                    <li .list-group-item>
+                        <a href="@{ConsensusAllR}">Consensus</a>: vote for things in a poll.

@@ -1,0 +1,13 @@
+<div .container>
+    <h1><span style="color: #aaa">Poll</span> #{pollName poll}
+    <br>
+    <table .table-bordered .table-hover .table-condensed>
+        <tr>
+            <td>
+            $forall uid <- users
+                <th>#{uid}
+        $forall (Entity _ choice, values) <- table
+            <tr>
+                <th scope="row">#{choiceName choice}
+                $forall x <- values
+                    <td>#{x}
