@@ -4,8 +4,9 @@
     <table .table-bordered .table-hover .table-condensed>
         <tr>
             <td>
-            <th>
-                My vote
+            $if isJust maybeUserId
+                <th>
+                    My Vote
             $forall uid <- users
                 <th>#{uid}
             <th>
@@ -13,20 +14,25 @@
         $forall (choice, myVote, values) <- table
             <tr>
                 <th scope="row">#{(choiceName . entityVal) choice}
-                <td>
-                    $# Firefox hack to disable form persistence:
-                    <form autocomplete="off">
-                        <label .option>
-                            <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="-1" :myVote == -1:checked>
-                            <span .radio.neg>
-                        <label .option>
-                            <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="0" :myVote == 0:checked>
-                            <span .radio.neut>
-                        <label .option>
-                            <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="1" :myVote == 1:checked>
-                            <span .radio.pos>
+                    $if isJust maybeUserId
+                        <td>
+                            $# Firefox hack to disable form persistence:
+                            <form autocomplete="off">
+                                <label .option>
+                                    <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="-1" :myVote == -1:checked>
+                                    <span .radio.neg>
+                                <label .option>
+                                    <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="0" :myVote == 0:checked>
+                                    <span .radio.neut>
+                                <label .option>
+                                    <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="1" :myVote == 1:checked>
+                                    <span .radio.pos>
                 $forall x <- values
                     <td>
                         <span .radio.other-checked class="#{x}">
                 <td>
                     ?
+    <br>
+    $if not (isJust maybeUserId)
+        <p>
+            Log in to vote!

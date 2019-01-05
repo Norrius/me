@@ -25,7 +25,7 @@ getConsensusR pollId = do
     maybeUserId <- maybeAuthId
     let userId = case maybeUserId of
             Just x -> x
-            _ -> (toSqlKey 0)
+            _ -> (toSqlKey (-1))  -- dummy key that should not exist
 
     maybePoll <- runDB $ selectFirst [PollId ==. pollId] []
     poll <- case maybePoll of
@@ -46,9 +46,10 @@ getConsensusR pollId = do
     myVotes' <- runDB $ rawSql
         "select coalesce(vote.value, 0) \
         \from choice \
-          \left outer join vote on vote.choice_id = choice.id \
-        \where choice.poll_id = ? and (vote.user_id = ? or vote.user_id isnull) \
-        \order by choice.id" [toPersistValue pollId, toPersistValue userId]
+          \left outer join (select * from vote where vote.user_id = ?) as vote \
+            \on vote.choice_id = choice.id \
+        \where choice.poll_id = ? \
+        \order by choice.id" [toPersistValue userId, toPersistValue pollId]
     let myVotes = map unSingle (myVotes' :: [Single Int])
 
     values' <- runDB $ rawSql
@@ -69,7 +70,9 @@ getConsensusR pollId = do
     let values = map unSingle (values' :: [Single Int])
     let votes = chunks (length users) $ map voteClass values
     let table = zip3 choices myVotes votes
-    $logDebug (pack . show $ table)
+    $logDebug (pack . show $ choices)
+    $logDebug (pack . show $ myVotes)
+    $logDebug (pack . show $ votes)
 
     defaultLayout $ do
         setTitle "Poll"
