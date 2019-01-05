@@ -1,0 +1,21 @@
+$(function() {
+  $('.radio').click(function(){
+    let input = $(this).prev();
+    $.ajax({
+      url: '@{ConsensusR pollId}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        choice_id: parseInt(input.attr("name")),
+        value: parseInt(input.attr("value"))
+      }),
+      context: this,  // set `this` in callbacks to current $(this)
+      success: function (data) {
+        console.log(data);
+      },
+      error: function (data) {
+        console.error(data);
+      }
+    });
+  });
+});

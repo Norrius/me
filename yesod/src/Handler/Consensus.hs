@@ -9,6 +9,7 @@ import Import
 import qualified Data.List
 import Database.Persist.Sql (rawSql, Single, unSingle, toSqlKey, fromSqlKey)
 import Database.Persist.Class (toPersistValue)
+import Data.Aeson.Types (withObject, parseMaybe)
 
 getConsensusAllR :: Handler Html
 getConsensusAllR = do
@@ -84,3 +85,19 @@ chunks _ [] = []
 chunks n xs = chunk : chunks n rest
     where
         (chunk, rest) = Data.List.splitAt n xs
+
+-- | Vote in a poll.
+postConsensusR :: PollId -> Handler Value
+postConsensusR pollId = do
+    (Entity userId _) <- requireAuth
+    request <- requireJsonBody
+    let parser = withObject "request" $ \o -> (,) <$> o .: "choice_id" <*> o .: "value"
+    let maybeArgs = parseMaybe parser request :: Maybe (ChoiceId, Int)
+    (choiceId, value) <- case maybeArgs of
+        Just x -> return x
+        _ -> invalidArgs []
+    -- TODO: verify poll_id = choice.poll_id
+
+    let vote = Vote choiceId userId value
+    _ <- runDB $ upsert vote [VoteValue =. value]
+    return $ object ["success" .= True]

@@ -23,4 +23,5 @@ Vote
     choiceId ChoiceId
     userId UserId
     value Int
+    VoteUnique choiceId userId
     deriving Show

@@ -180,6 +180,7 @@ instance Yesod App where
 
     -- Polls
     isAuthorized ConsensusAllR _ = return Authorized
+    isAuthorized (ConsensusR _) True = isAuthenticated
     isAuthorized (ConsensusR _) _ = return Authorized
 
     -- the profile route requires that the user is authenticated, so we
