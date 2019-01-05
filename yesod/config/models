@@ -14,9 +14,11 @@ CalendarEvent
 
 Poll
     name Text
+    deriving Show
 Choice
     name Text
     pollId PollId
+    deriving Show
 Vote
     choiceId ChoiceId
     userId UserId
