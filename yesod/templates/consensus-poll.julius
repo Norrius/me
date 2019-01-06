@@ -1,21 +1,46 @@
-$(function() {
-  $('.radio').click(function(){
-    let input = $(this).prev();
-    $.ajax({
-      url: '@{ConsensusR pollId}',
-      type: 'POST',
-      contentType: "application/json",
-      data: JSON.stringify({
-        choice_id: parseInt(input.attr("name")),
-        value: parseInt(input.attr("value"))
-      }),
-      context: this,  // set `this` in callbacks to current $(this)
-      success: function (data) {
-        console.log(data);
-      },
-      error: function (data) {
-        console.error(data);
-      }
+$(function () {
+    $('.radio').click(function () {
+        let input = $(this).prev();
+        $.ajax({
+            url: '@{ConsensusR pollId}',
+            type: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify({
+                choice_id: parseInt(input.attr("name")),
+                value: parseInt(input.attr("value"))
+            }),
+            context: this,  // set `this` in callbacks to current $(this)
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (data) {
+                console.error("Error voting in a poll: " + data);
+            }
+        });
     });
-  });
+
+    $("#new-choice-form").submit(function (event) {
+        event.preventDefault();
+
+        let name = $("#new-choice").val();
+        if (!name) {
+            alert("Name cannot be empty.");
+            return;
+        }
+        $.ajax({
+            url: '@{ConsensusR pollId}',
+            type: 'PUT',
+            contentType: "application/json",
+            data: JSON.stringify({
+                name: name,
+            }),
+            success: function (data) {
+                console.log(data);
+                location.reload();
+            },
+            error: function (data) {
+                console.error("Error creating choice: " + data);
+            },
+        });
+    });
 });

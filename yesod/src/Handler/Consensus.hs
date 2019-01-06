@@ -68,15 +68,25 @@ getConsensusR pollId = do
          \where choice.poll_id = ? \
          \order by choice.id asc, \"user\".id " [toPersistValue pollId, toPersistValue userId, toPersistValue pollId]
     let values = map unSingle (values' :: [Single Int])
-    let votes = chunks (length users) $ map voteClass values
-    let table = zip3 choices myVotes votes
-    $logDebug (pack . show $ choices)
-    $logDebug (pack . show $ myVotes)
-    $logDebug (pack . show $ votes)
+    let votes = chunks (length users) values
+    let totals = map score (zipWith (:) myVotes votes)
+    let voteClasses = map (map voteClass) votes
+    let table = zip4 choices myVotes voteClasses totals :: [(Entity Choice, Int, [Text], Int)]
+    $logDebug . pack . show $ choices
+    $logDebug . pack . show $ myVotes
+    $logDebug . pack . show $ votes
+    $logDebug . pack . show $ totals
 
     defaultLayout $ do
         setTitle "Poll"
         $(widgetFile "consensus-poll")
+
+-- There should be a better way to do this
+score :: [Int] -> Int
+score [] = 0
+score (1:xs) = 1 + score xs
+score (-1:xs) = (-3) + score xs
+score (_:xs) = score xs
 
 voteClass :: Int -> Text
 voteClass (-1) = "neg"
@@ -97,10 +107,26 @@ postConsensusR pollId = do
     let parser = withObject "request" $ \o -> (,) <$> o .: "choice_id" <*> o .: "value"
     let maybeArgs = parseMaybe parser request :: Maybe (ChoiceId, Int)
     (choiceId, value) <- case maybeArgs of
-        Just x -> return x
+        Just x@(_, -1) -> return x
+        Just x@(_, 0) -> return x
+        Just x@(_, 1) -> return x
         _ -> invalidArgs []
     -- TODO: verify poll_id = choice.poll_id
 
     let vote = Vote choiceId userId value
     _ <- runDB $ upsert vote [VoteValue =. value]
+    return $ object ["success" .= True]
+
+-- | Add a new option.
+putConsensusR :: PollId -> Handler Value
+putConsensusR pollId = do
+    (Entity userId _) <- requireAuth
+    request <- requireJsonBody
+    let parser = withObject "request" $ \o -> o .: "name"
+    let maybeName = parseMaybe parser request :: Maybe Text
+    name <- case maybeName of
+        Just x -> return x
+        _ -> invalidArgs[]
+
+    _ <- runDB $ insert $ Choice name pollId
     return $ object ["success" .= True]

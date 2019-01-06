@@ -11,7 +11,7 @@
                 <th>#{uid}
             <th>
                 Total
-        $forall (choice, myVote, values) <- table
+        $forall (choice, myVote, values, total) <- table
             <tr>
                 <th scope="row">#{(choiceName . entityVal) choice}
                     $if isJust maybeUserId
@@ -31,8 +31,13 @@
                     <td>
                         <span .radio.other-checked class="#{x}">
                 <td>
-                    ?
+                    #{total}
     <br>
-    $if not (isJust maybeUserId)
+    $if isJust maybeUserId
+        <form #new-choice-form>
+            <input #new-choice type="text" placeholder="New option..." required>
+            <button type="submit">
+                Add option
+    $else
         <p>
             Log in to vote!
