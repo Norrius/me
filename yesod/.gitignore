@@ -3,6 +3,7 @@ yesod-devel
 static/tmp
 *.cabal
 *.sqlite*
+*.keter
 config/client_session_key.aes
 env
 

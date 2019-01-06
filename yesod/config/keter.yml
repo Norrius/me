@@ -1,37 +1,22 @@
-# After you've edited this file, remove the following line to allow
-# `yesod keter` to build your bundle.
-user-edited: false
-
 # A Keter app is composed of 1 or more stanzas. The main stanza will define our
 # web application. See the Keter documentation for more information on
 # available stanzas.
 stanzas:
 
-  # Your Yesod application.
   - type: webapp
 
-    # Name of your executable. You are unlikely to need to change this.
-    # Note that all file paths are relative to the keter.yml file.
-    #
-    # The path given is for Stack projects. If you're still using cabal, change
-    # to
-    # exec: ../dist/build/me/me
     exec: ../dist/bin/me
 
     # Command line options passed to your application.
     args: []
 
     hosts:
-      # You can specify one or more hostnames for your application to respond
-      # to. The primary hostname will be used for generating your application
-      # root.
-      - www.me.com
+      - norrius.me
+      - www.norrius.me
+      - "127.0.0.1:3003"
 
-    # Enable to force Keter to redirect to https
-    # Can be added to any stanza
     requires-secure: false
 
-  # Static files.
   - type: static-files
     hosts:
       - static.me.com
@@ -40,13 +25,12 @@ stanzas:
     # Uncomment to turn on directory listings.
     # directory-listing: true
 
-  # Redirect plain domain name to www.
   - type: redirect
 
     hosts:
-      - me.com
+      - www.norrius.me
     actions:
-      - host: www.me.com
+      - host: norrius.me
         # secure: false
         # port: 80
 
