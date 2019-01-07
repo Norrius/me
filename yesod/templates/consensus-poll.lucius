@@ -15,13 +15,13 @@
     text-align: center;
     font-weight: bold;
 }
-.radio.neg::after {
+.radio.v-1::after {
     content: "−";
 }
-.radio.neut::after {
+.radio.v0::after {
     content: "~";
 }
-.radio.pos::after {
+.radio.v1::after {
     content: "+";
 }
 
@@ -30,19 +30,27 @@
 }
 
 /* checked style */
-.radio.other-checked,
+.radio.other-vote,
 .option input:checked ~ .radio {
     color: white;
 }
-.radio.other-checked.neg,
-.option input:checked ~ .radio.neg {
+.radio.other-vote.v-1,
+.option input:checked ~ .radio.v-1 {
     background-color: #f22222;
 }
-.radio.other-checked.neut,
-.option input:checked ~ .radio.neut {
+.radio.other-vote.v0,
+.option input:checked ~ .radio.v0 {
     background-color: #22adf2;
 }
-.radio.other-checked.pos,
-.option input:checked ~ .radio.pos {
+.radio.other-vote.v1,
+.option input:checked ~ .radio.v1 {
     background-color: #22e322;
+}
+
+/* style controls for adding choices */
+
+#new-choice-form input,
+#new-choice-form button {
+    height: 2em;
+    vertical-align: top;
 }

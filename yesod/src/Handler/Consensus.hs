@@ -7,7 +7,8 @@ module Handler.Consensus where
 
 import Import
 import qualified Data.List
-import Database.Persist.Sql (rawSql, Single, unSingle, toSqlKey, fromSqlKey)
+import qualified Data.HashMap.Strict as Map
+import Database.Persist.Sql (rawSql, toSqlKey, fromSqlKey)
 import Database.Persist.Class (toPersistValue)
 import Data.Aeson.Types (withObject, parseMaybe)
 
@@ -18,86 +19,49 @@ getConsensusAllR = do
         setTitle "Polls"
         $(widgetFile "consensus-all")
 
--- | Produces a poll view. The crazy selects could be simplified (making them more efficient),
--- but at the cost of dealing with more logic Haskell-side, which I'd rather not.
+-- | Produces a poll view.
 getConsensusR :: PollId -> Handler Html
 getConsensusR pollId = do
+    maybePoll <- runDB $ selectFirst [PollId ==. pollId] []
+    poll <- case maybePoll of
+        Just (Entity _ record) -> return record
+        _ -> notFound
     maybeUserId <- maybeAuthId
     let userId = case maybeUserId of
             Just x -> x
             _ -> (toSqlKey (-1))  -- dummy key that should not exist
 
-    maybePoll <- runDB $ selectFirst [PollId ==. pollId] []
-    poll <- case maybePoll of
-        Just (Entity _ record) -> return record
-        _ -> notFound
-
     choices <- runDB $ selectList [ChoicePollId ==. pollId] [Asc ChoiceId]
-    -- user IDs are themselves unique, so the addition of name doesn't change anything:
-    users' <- runDB $ rawSql
-        "select distinct vote.user_id, \"user\".name \
-        \from vote \
-        \join choice on vote.choice_id = choice.id \
-        \join \"user\" on vote.user_id = \"user\".id \
-        \where choice.poll_id = ? and \"user\".id != ? \
-        \order by vote.user_id" [toPersistValue pollId, toPersistValue userId]
-    let users = map (unSingle . snd) (users' :: [(UserId, Single Text)])
+    allVotes' <- runDB $ rawSql
+        "select ?? \
+        \from vote join choice \
+          \on vote.choice_id = choice.id \
+        \where choice.poll_id = ?" [toPersistValue pollId]
+    let allVotes = map entityVal allVotes' :: [Vote]
+        (myVotes, otherVotes) = partition ((userId ==) . voteUserId) allVotes
+        userIds = Data.List.nub $ map voteUserId otherVotes -- O(n^2)
 
-    myVotes' <- runDB $ rawSql
-        "select coalesce(vote.value, 0) \
-        \from choice \
-          \left outer join (select * from vote where vote.user_id = ?) as vote \
-            \on vote.choice_id = choice.id \
-        \where choice.poll_id = ? \
-        \order by choice.id" [toPersistValue userId, toPersistValue pollId]
-    let myVotes = map unSingle (myVotes' :: [Single Int])
+        -- These maps are queried from the template to fill in cell values:
+        myVotesMap = Map.fromList $
+            map (\v -> (voteChoiceId v, voteValue v)) myVotes
+        otherVotesMap = Map.fromList $
+            map (\v -> ((voteChoiceId v, voteUserId v), voteValue v)) otherVotes
+        totalsMap = Map.fromListWith (+) $
+            map (\v -> (voteChoiceId v, weight . voteValue $ v)) allVotes
 
-    values' <- runDB $ rawSql
-        "select coalesce(vote.value, 0) \
-         \from choice \
-           \cross join ( \
-             \select distinct \"user\".* \
-             \from \"user\" \
-               \join vote on \"user\".id = vote.user_id \
-               \join choice on vote.choice_id = choice.id \
-             \where choice.poll_id = ? and \"user\".id != ? \
-           \) as \"user\" \
-           \left outer join vote on \
-             \vote.choice_id = choice.id and \
-             \vote.user_id = \"user\".id \
-         \where choice.poll_id = ? \
-         \order by choice.id asc, \"user\".id " [toPersistValue pollId, toPersistValue userId, toPersistValue pollId]
-    let values = map unSingle (values' :: [Single Int])
-    let votes = chunks (length users) values
-    let totals = map score (zipWith (:) myVotes votes)
-    let voteClasses = map (map voteClass) votes
-    let table = zip4 choices myVotes voteClasses totals :: [(Entity Choice, Int, [Text], Int)]
-    $logDebug . pack . show $ choices
-    $logDebug . pack . show $ myVotes
-    $logDebug . pack . show $ votes
-    $logDebug . pack . show $ totals
+    $logDebug . pack . show $ myVotesMap
+    $logDebug . pack . show $ otherVotesMap
 
+    users <- runDB $ selectList [UserId <-. userIds] [Asc UserId]
     defaultLayout $ do
         setTitle "Poll"
         $(widgetFile "consensus-poll")
 
--- There should be a better way to do this
-score :: [Int] -> Int
-score [] = 0
-score (1:xs) = 1 + score xs
-score (-1:xs) = (-3) + score xs
-score (_:xs) = score xs
-
-voteClass :: Int -> Text
-voteClass (-1) = "neg"
-voteClass 1 = "pos"
-voteClass _ = "neut"
-
-chunks :: Int -> [a] -> [[a]]
-chunks _ [] = []
-chunks n xs = chunk : chunks n rest
-    where
-        (chunk, rest) = Data.List.splitAt n xs
+-- | Negative votes are more important, as defined by these equations.
+weight :: Int -> Int
+weight 1 = 1
+weight (-1) = -3
+weight _ = 0
 
 -- | Vote in a poll.
 postConsensusR :: PollId -> Handler Value
