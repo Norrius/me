@@ -35,9 +35,7 @@ getCalendar calendarId = do
                                     CalendarUserId ==. userId] []
         Nothing -> selectFirst [CalendarId ==. calendarId,-- hardcoded demo calendar
                                 CalendarId ==. demoCalendar] [] -- hackity hack
-    case maybeCalendar of
-        Just (Entity _ record) -> return record
-        Nothing -> notFound
+    maybe notFound (return . entityVal) maybeCalendar
 
 -- | Produces a calendar view for a specific month.
 getCalendarMonthR :: CalendarId -> Integer -> Int -> Handler Html
@@ -94,10 +92,7 @@ postCalendarR calendarId = do
             let parser = withObject "request" $ \o -> o .: "date"
             strDate <- parseMaybe parser value :: Maybe String
             parseDay $ unpack strDate
-    date <- case maybeDate of
-        Just x -> return x
-        _ -> invalidArgs ["`date` must be YYYY-MM-DD"]
-
+    date <- maybe (invalidArgs ["`date` must be YYYY-MM-DD"]) return maybeDate
     _ <- getCalendar calendarId  -- access check
 
     let requestEvent = CalendarEvent calendarId date

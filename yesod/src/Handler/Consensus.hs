@@ -8,7 +8,7 @@ module Handler.Consensus where
 import Import
 import qualified Data.List
 import qualified Data.HashMap.Strict as Map
-import Database.Persist.Sql (rawSql, toSqlKey, fromSqlKey)
+import Database.Persist.Sql (rawSql, fromSqlKey)
 import Database.Persist.Class (toPersistValue)
 import Data.Aeson.Types (withObject, parseMaybe)
 
@@ -16,7 +16,7 @@ getConsensusAllR :: Handler Html
 getConsensusAllR = do
     polls <- runDB $ selectList [] [Asc PollName]
     defaultLayout $ do
-        setTitle "Polls"
+        setTitle "Consensus"
         $(widgetFile "consensus-all")
 
 -- | Produces a poll view.
@@ -27,18 +27,15 @@ getConsensusR pollId = do
         Just (Entity _ record) -> return record
         _ -> notFound
     maybeUserId <- maybeAuthId
-    let userId = case maybeUserId of
-            Just x -> x
-            _ -> (toSqlKey (-1))  -- dummy key that should not exist
 
-    choices <- runDB $ selectList [ChoicePollId ==. pollId] [Asc ChoiceId]
+    choices' <- runDB $ selectList [ChoicePollId ==. pollId] [] -- unsorted
     allVotes' <- runDB $ rawSql
         "select ?? \
         \from vote join choice \
           \on vote.choice_id = choice.id \
         \where choice.poll_id = ?" [toPersistValue pollId]
     let allVotes = map entityVal allVotes' :: [Vote]
-        (myVotes, otherVotes) = partition ((userId ==) . voteUserId) allVotes
+        (myVotes, otherVotes) = partition ((maybeUserId ==) . Just . voteUserId) allVotes
         userIds = Data.List.nub $ map voteUserId otherVotes -- O(n^2)
 
         -- These maps are queried from the template to fill in cell values:
@@ -48,6 +45,10 @@ getConsensusR pollId = do
             map (\v -> ((voteChoiceId v, voteUserId v), voteValue v)) otherVotes
         totalsMap = Map.fromListWith (+) $
             map (\v -> (voteChoiceId v, weight . voteValue $ v)) allVotes
+
+        choices = sortBy (\a b -> flip compare (total a) (total b)) choices' :: [Entity Choice]
+            where
+                total c = Map.lookupDefault 0 (entityKey c) totalsMap
 
     $logDebug . pack . show $ myVotesMap
     $logDebug . pack . show $ otherVotesMap
@@ -63,7 +64,7 @@ weight 1 = 1
 weight (-1) = -3
 weight _ = 0
 
--- | Vote in a poll.
+-- | Vote in a poll. Accepts body in the form {"choice_id": 1, "value": -1}.
 postConsensusR :: PollId -> Handler Value
 postConsensusR pollId = do
     (Entity userId _) <- requireAuth
@@ -75,22 +76,20 @@ postConsensusR pollId = do
         Just x@(_, 0) -> return x
         Just x@(_, 1) -> return x
         _ -> invalidArgs []
-    -- TODO: verify poll_id = choice.poll_id
+    maybeChoice <- runDB $ selectFirst [ChoiceId ==. choiceId, ChoicePollId ==. pollId] []
+    _ <- maybe notFound return maybeChoice
 
     let vote = Vote choiceId userId value
     _ <- runDB $ upsert vote [VoteValue =. value]
     return $ object ["success" .= True]
 
--- | Add a new option.
+-- | Add a new option. Accepts body in the form {"name": "Option Name"}.
 putConsensusR :: PollId -> Handler Value
 putConsensusR pollId = do
-    (Entity userId _) <- requireAuth
     request <- requireJsonBody
     let parser = withObject "request" $ \o -> o .: "name"
     let maybeName = parseMaybe parser request :: Maybe Text
-    name <- case maybeName of
-        Just x -> return x
-        _ -> invalidArgs[]
+    name <- maybe (invalidArgs ["`name` required"]) return maybeName
 
     _ <- runDB $ insert $ Choice name pollId
     return $ object ["success" .= True]
