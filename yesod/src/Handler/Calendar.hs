@@ -106,6 +106,18 @@ postCalendarR calendarId = do
 
     return $ toJSON ("ok"::Text)
 
+-- | Creates a new calendar.
+postCalendarsR :: Handler Value
+postCalendarsR = do
+    (Entity userId _) <- requireAuth
+    request <- requireJsonBody
+    let parser = withObject "request" $ \o -> o .: "name"
+    let maybeName = parseMaybe parser request :: Maybe Text
+    name <- maybe (invalidArgs ["`name` required"]) return maybeName
+
+    _ <- runDB $ insert $ Calendar name userId
+    return $ object ["success" .= True]
+
 -- https://github.com/yesodweb/yesod/wiki/Formatting-dates
 formatDay :: Day -> String
 formatDay day = formatTime defaultTimeLocale "%d.%m.%Y" $ UTCTime day 0

@@ -1,0 +1,26 @@
+$(function () {
+    $("#new-calendar-form").submit(function (event) {
+        event.preventDefault();
+
+        let name = $("#new-calendar").val();
+        if (!name) {
+            alert("Name cannot be empty.");
+            return;
+        }
+        $.ajax({
+            url: '@{CalendarsR}',
+            type: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify({
+                name: name,
+            }),
+            success: function (data) {
+                console.log(data);
+                location.reload();
+            },
+            error: function (data) {
+                console.error("Error creating calendar: " + data);
+            },
+        });
+    });
+});

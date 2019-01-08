@@ -4,3 +4,13 @@ $if null calendars
 $else
     $forall Entity calendarId calendar <- calendars
         <li><a href=@{CalendarR calendarId}>#{calendarName calendar}</a>
+
+<br>
+$if isJust maybeUserId
+    <form #new-calendar-form .form-inline>
+        <input #new-calendar .form-control type="text" placeholder="New calendar name..." required>
+        <button .btn-default type="submit">
+            Create
+$else
+    <p>
+        Log in to create private calendars!

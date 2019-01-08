@@ -174,6 +174,7 @@ instance Yesod App where
     isAuthorized (StaticR _) _ = return Authorized
 
     -- Calendar handlers check auth by themselves to allow access to demo calendar:
+    isAuthorized CalendarsR True = isAuthenticated
     isAuthorized CalendarsR _ = return Authorized
     isAuthorized (CalendarR _) _ = return Authorized
     isAuthorized (CalendarMonthR _ _ _) _ = return Authorized
@@ -236,7 +237,7 @@ instance YesodBreadcrumbs App where
     breadcrumb ProfileR = return ("Profile", Just HomeR)
     breadcrumb CalendarsR = return ("Calendars", Just HomeR)
     breadcrumb (CalendarMonthR _ _ _) = return ("Calendar", Just CalendarsR)
-    breadcrumb ConsensusAllR = return ("Polls", Just HomeR)
+    breadcrumb ConsensusAllR = return ("Consensus", Just HomeR)
     breadcrumb (ConsensusR _) = return ("Poll", Just ConsensusAllR)
     breadcrumb  _ = return ("Page", Just HomeR)
 
