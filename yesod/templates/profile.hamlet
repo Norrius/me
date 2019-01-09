@@ -1,10 +1,15 @@
 <div .ui.container>
 
     <h1>
-      User Profile
+        User Profile
 
     <p>
-      There are no user settings (yet), but some parts of the website require authentication.
+        You are logged in as <strong><span class="username">#{userName user}</span></strong>.
 
     <p>
-      You are logged in as <strong><span class="username">#{userName user}</span></strong>.
+        You can change your display name here:
+
+    <form #edit-profile-form .form-inline>
+        <input #user-name .form-control type="text" placeholder="New name..." required>
+        <button .btn-default type="submit">
+            Change

@@ -1,0 +1,7 @@
+
+/* controls for adding calendars */
+#edit-profile-form input,
+#edit-profile-form button {
+    height: 2em;
+    vertical-align: top;
+}

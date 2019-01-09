@@ -1,0 +1,26 @@
+$(function () {
+    $("#edit-profile-form").submit(function (event) {
+        event.preventDefault();
+
+        let name = $("#user-name").val();
+        if (!name) {
+            alert("Name cannot be empty.");
+            return;
+        }
+        $.ajax({
+            url: '@{ProfileR}',
+            type: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify({
+                name: name,
+            }),
+            success: function (data) {
+                console.log(data);
+                location.reload();
+            },
+            error: function (data) {
+                console.error("Error updating profile: " + data);
+            },
+        });
+    });
+});
