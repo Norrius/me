@@ -28,10 +28,6 @@ import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 
--- | The foundation datatype for your application. This can be a good place to
--- keep settings and values requiring initialization before your application
--- starts running, such as database connections. Every handler will have
--- access to the data present here.
 data App = App
     { appSettings    :: AppSettings
     , appStatic      :: Static -- ^ Settings for static file serving.
@@ -46,19 +42,6 @@ data MenuItem = MenuItem
     , menuItemAccessCallback :: Bool
     }
 
-data MenuTypes
-    = NavbarLeft MenuItem
-    | NavbarRight MenuItem
-
--- This is where we define all of the routes in our application. For a full
--- explanation of the syntax, please see:
--- http://www.yesodweb.com/book/routing-and-handlers
---
--- Note that this is really half the story; in Application.hs, mkYesodDispatch
--- generates the rest of the code. Please see the following documentation
--- for an explanation for this split:
--- http://www.yesodweb.com/book/scaffolding-and-the-site-template#scaffolding-and-the-site-template_foundation_and_application_modules
---
 -- This function also generates the following type synonyms:
 -- type Handler = HandlerT App IO
 -- type Widget = WidgetT App IO ()
@@ -71,32 +54,25 @@ type Form x = Html -> MForm (HandlerFor App) (FormResult x, Widget)
 type DB a = forall (m :: * -> *).
     (MonadIO m) => ReaderT SqlBackend m a
 
--- Please see the documentation for the Yesod typeclass. There are a number
--- of settings which can be configured by overriding methods here.
 instance Yesod App where
-    -- Controls the base of generated URLs. For more information on modifying,
-    -- see: https://github.com/yesodweb/yesod/wiki/Overriding-approot
+    -- Controls the base of generated URLs.
     approot :: Approot App
     approot = ApprootRequest $ \app req ->
         case appRoot $ appSettings app of
             Nothing -> getApprootText guessApproot app req
             Just root -> root
 
-    -- Store session data on the client in encrypted cookies,
+    -- Store session data on the client in encrypted cookies
     makeSessionBackend :: App -> IO (Maybe SessionBackend)
     makeSessionBackend _ = Just <$> defaultClientSessionBackend
         (7*24*60)    -- timeout in minutes
         "config/client_session_key.aes"
 
-    -- Yesod Middleware allows you to run code before and after each handler function.
-    -- The defaultYesodMiddleware adds the response header "Vary: Accept, Accept-Language" and performs authorization checks.
-    -- Some users may also want to add the defaultCsrfMiddleware, which:
-    --   a) Sets a cookie with a CSRF token in it.
-    --   b) Validates that incoming write requests include that token in either a header or POST parameter.
-    -- To add it, chain it together with the defaultMiddleware: yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
-    -- For details, see the CSRF documentation in the Yesod.Core.Handler module of the yesod-core package.
+    -- defaultYesodMiddleware adds the response header "Vary: Accept, Accept-Language" and performs
+    -- authorization checks. defaultCsrfMiddleware sets a cookie with a CSRF token in it and
+    -- validates that incoming write requests include that token in either a header or POST parameter.
     yesodMiddleware :: ToTypedContent res => Handler res -> Handler res
-    yesodMiddleware = defaultYesodMiddleware
+    yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
 
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
@@ -110,39 +86,38 @@ instance Yesod App where
         (title, parents) <- breadcrumbs
 
         -- Define the menu items of the header.
-        let menuItems =
-                [ NavbarLeft $ MenuItem
+        let navbarLeftMenuItems =
+                [ MenuItem
                     { menuItemLabel = "Home"
                     , menuItemRoute = Left HomeR
                     , menuItemAccessCallback = True
                     }
-                , NavbarLeft $ MenuItem
+                , MenuItem
                     { menuItemLabel = "GitHub"
                     , menuItemRoute = Right "https://github.com/Norrius/me"
                     , menuItemAccessCallback = True
                     }
-                , NavbarRight $ MenuItem
+                ]
+            navbarRightMenuItems =
+                [ MenuItem
                     { menuItemLabel = "Profile"
                     , menuItemRoute = Left ProfileR
                     , menuItemAccessCallback = isJust muser
                     }
-                , NavbarRight $ MenuItem
+                , MenuItem
                     { menuItemLabel = "Login"
                     , menuItemRoute = Left (AuthR LoginR)
                     , menuItemAccessCallback = isNothing muser
                     }
-                , NavbarRight $ MenuItem
+                , MenuItem
                     { menuItemLabel = "Logout"
                     , menuItemRoute = Left (AuthR LogoutR)
                     , menuItemAccessCallback = isJust muser
                     }
                 ]
 
-        let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
-        let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
-
         let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
-        let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
+            navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -173,7 +148,7 @@ instance Yesod App where
     isAuthorized (StaticR _) _ = return Authorized
 
     -- Calendar handlers check auth by themselves to allow access to demo calendar:
-    isAuthorized CalendarsR True = isAuthenticated
+    isAuthorized CalendarsR True = isAuthenticated -- creates new calendars, not in demo
     isAuthorized CalendarsR _ = return Authorized
     isAuthorized (CalendarR _) _ = return Authorized
     isAuthorized (CalendarMonthR _ _ _) _ = return Authorized
@@ -302,7 +277,7 @@ instance YesodAuth App where
             Nothing -> Authenticated <$> insert User
                 { userIdent = credsIdent creds
                 , userName = name
-                , userPassword = Nothing
+                , userActive = True
                 }
         where
             decodeUserResponse :: Text -> Maybe UserResponse
@@ -327,8 +302,7 @@ isAuthenticated = do
 
 instance YesodAuthPersist App
 
--- This instance is required to use forms. You can modify renderMessage to
--- achieve customized and internationalized form validation messages.
+-- This instance is required to use forms.
 instance RenderMessage App FormMessage where
     renderMessage :: App -> [Lang] -> FormMessage -> Text
     renderMessage _ _ = defaultFormMessage
@@ -342,11 +316,3 @@ instance HasHttpManager App where
 
 unsafeHandler :: App -> Handler a -> IO a
 unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
-
--- Note: Some functionality previously present in the scaffolding has been
--- moved to documentation in the Wiki. Following are some hopefully helpful
--- links:
---
--- https://github.com/yesodweb/yesod/wiki/Sending-email
--- https://github.com/yesodweb/yesod/wiki/Serve-static-files-from-a-separate-domain
--- https://github.com/yesodweb/yesod/wiki/i18n-messages-in-the-scaffolding

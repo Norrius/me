@@ -1,5 +1,3 @@
-.calendar-row {
-}
 .calendar-cell {
     float: left;
     

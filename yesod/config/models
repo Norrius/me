@@ -1,12 +1,13 @@
 User
     ident Text
     name Text
-    password Text Maybe
+    active Bool
     UniqueUser ident
     deriving Typeable
 Calendar
     name Text
     userId UserId
+    deriving Show
 CalendarEvent
     calendar CalendarId
     date Day

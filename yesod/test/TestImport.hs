@@ -70,7 +70,11 @@ getTables = do
 -- Foundation.hs
 authenticateAs :: Entity User -> YesodExample App ()
 authenticateAs (Entity _ u) = do
+    -- Request a page to have server set CSRF cookie
     request $ do
+        setUrl $ HomeR
+    request $ do
+        addTokenFromCookie
         setMethod "POST"
         addPostParam "ident" $ userIdent u
         setUrl $ AuthR $ PluginR "dummy" []
@@ -79,6 +83,6 @@ authenticateAs (Entity _ u) = do
 createUser :: Text -> YesodExample App (Entity User)
 createUser ident = runDB $ insertEntity User
     { userIdent = ident
-    , userName = "User"
-    , userPassword = Nothing
+    , userName = "John Doe"
+    , userActive = True
     }

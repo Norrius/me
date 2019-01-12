@@ -24,5 +24,6 @@ spec = withApp $ do
             authenticateAs userEntity
 
             get ProfileR
+            statusIs 200
             let (Entity _ user) = userEntity
-            htmlAnyContain ".username" . unpack $ userIdent user
+            htmlAnyContain ".username" . unpack $ userName user

@@ -39,26 +39,20 @@ import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
                                              toLogStr)
 
 -- Import all relevant handler modules here.
--- Don't forget to add new modules to your cabal file!
 import Handler.Common
 import Handler.Home
 import Handler.Profile
 import Handler.Calendar
 import Handler.Consensus
 
--- This line actually creates our YesodDispatch instance. It is the second half
--- of the call to mkYesodData which occurs in Foundation.hs. Please see the
--- comments there for more details.
+-- This line actually creates a YesodDispatch instance.
 mkYesodDispatch "App" resourcesApp
 
 -- | This function allocates resources (such as a database connection pool),
--- performs initialization and returns a foundation datatype value. This is also
--- the place to put your migrate statements to have automatic database
--- migrations handled by Yesod.
+-- performs initialization and returns a foundation datatype value.
 makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
-    -- Some basic initializations: HTTP connection manager, logger, and static
-    -- subsite.
+    -- Some basic initializations: HTTP connection manager, logger, and static subsite.
     appHttpManager <- getGlobalManager
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
     appStatic <-
@@ -71,9 +65,6 @@ makeFoundation appSettings = do
     -- temporary foundation without a real connection pool, get a log function
     -- from there, and then create the real foundation.
     let mkFoundation appConnPool = App {..}
-        -- The App {..} syntax is an example of record wild cards. For more
-        -- information, see:
-        -- https://ocharles.org.uk/blog/posts/2014-12-04-record-wildcards.html
         tempFoundation = mkFoundation $ error "connPool forced in tempFoundation"
         logFunc = messageLoggerSource tempFoundation appLogger
 
@@ -109,7 +100,6 @@ makeLogWare foundation =
                             else FromSocket)
         , destination = Logger $ loggerSet $ appLogger foundation
         }
-
 
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings
