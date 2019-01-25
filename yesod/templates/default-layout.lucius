@@ -100,3 +100,10 @@ a:focus {
 #message {
     margin-bottom: 40px;
 }
+
+/* style controls for creating new objects */
+#new-object-form input,
+#new-object-form button {
+    height: 2em;
+    vertical-align: top;
+}

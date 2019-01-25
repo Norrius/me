@@ -46,11 +46,3 @@
 .option input:checked ~ .radio.v1 {
     background-color: #22e322;
 }
-
-/* style controls for adding choices */
-
-#new-choice-form input,
-#new-choice-form button {
-    height: 2em;
-    vertical-align: top;
-}

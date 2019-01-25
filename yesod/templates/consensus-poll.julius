@@ -19,7 +19,7 @@ $(function () {
         });
     });
 
-    $("#new-choice-form").submit(function (event) {
+    $("#new-object-form").submit(function (event) {
         event.preventDefault();
 
         let name = $("#new-choice").val();

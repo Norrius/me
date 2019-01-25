@@ -4,3 +4,10 @@ $if null polls
 $else
     $forall Entity pollId poll <- polls
         <li><a href=@{ConsensusR pollId}>#{pollName poll}</a>
+
+<br>
+$if isJust maybeUserId
+    <form #new-object-form .form-inline autocomplete="off">
+        <input #new-poll .form-control type="text" placeholder="New poll name..." required>
+        <button .btn-default type="submit">
+            Create

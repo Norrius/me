@@ -9,7 +9,7 @@
     <p>
         You can change your display name here:
 
-    <form #edit-profile-form .form-inline>
+    <form #edit-profile-form .form-inline autocomplete="off">
         <input #user-name .form-control type="text" placeholder="New name..." required>
         <button .btn-default type="submit">
             Change

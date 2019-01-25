@@ -14,7 +14,8 @@ import Data.Aeson.Types (withObject, parseMaybe)
 
 getConsensusAllR :: Handler Html
 getConsensusAllR = do
-    polls <- runDB $ selectList [] [Asc PollName]
+    maybeUserId <- maybeAuthId
+    polls <- runDB $ selectList [] [Desc PollId]
     defaultLayout $ do
         setTitle "Consensus"
         $(widgetFile "consensus-all")
@@ -81,6 +82,17 @@ postConsensusR pollId = do
 
     let vote = Vote choiceId userId value
     _ <- runDB $ upsert vote [VoteValue =. value]
+    return $ object ["success" .= True]
+
+-- | Add a new poll.
+postConsensusAllR :: Handler Value
+postConsensusAllR = do
+    request <- requireJsonBody
+    let parser = withObject "request" $ \o -> o .: "name"
+    let maybeName = parseMaybe parser request :: Maybe Text
+    name <- maybe (invalidArgs ["`name` required"]) return maybeName
+
+    _ <- runDB $ insert $ Poll name
     return $ object ["success" .= True]
 
 -- | Add a new option. Accepts body in the form {"name": "Option Name"}.

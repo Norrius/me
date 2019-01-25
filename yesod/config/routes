@@ -15,5 +15,5 @@
 /calendar/#CalendarId CalendarR GET POST
 /calendar/#CalendarId/#Integer/#Int CalendarMonthR GET
 
-/consensus ConsensusAllR GET
+/consensus ConsensusAllR GET POST
 /consensus/#PollId ConsensusR GET POST PUT

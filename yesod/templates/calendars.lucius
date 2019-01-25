@@ -1,7 +1,0 @@
-
-/* controls for adding calendars */
-#new-calendar-form input,
-#new-calendar-form button {
-    height: 2em;
-    vertical-align: top;
-}

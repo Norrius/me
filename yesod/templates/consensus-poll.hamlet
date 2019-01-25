@@ -36,7 +36,7 @@
                     #{Map.lookupDefault 0 (entityKey choice) totalsMap}
     <br>
     $if isJust maybeUserId
-        <form #new-choice-form .form-inline>
+        <form #new-object-form .form-inline>
             <input #new-choice .form-control type="text" placeholder="New option..." required>
             <button .btn-default type="submit">
                 Add option

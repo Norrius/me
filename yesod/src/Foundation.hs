@@ -154,6 +154,7 @@ instance Yesod App where
     isAuthorized (CalendarMonthR _ _ _) _ = return Authorized
 
     -- Polls
+    isAuthorized ConsensusAllR True = isAuthenticated
     isAuthorized ConsensusAllR _ = return Authorized
     isAuthorized (ConsensusR _) True = isAuthenticated
     isAuthorized (ConsensusR _) _ = return Authorized

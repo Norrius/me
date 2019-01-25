@@ -2,13 +2,13 @@ $(function () {
     $("#new-object-form").submit(function (event) {
         event.preventDefault();
 
-        let name = $("#new-calendar").val();
+        let name = $("#new-poll").val();
         if (!name) {
             alert("Name cannot be empty.");
             return;
         }
         $.ajax({
-            url: '@{CalendarsR}',
+            url: '@{ConsensusAllR}',
             type: 'POST',
             contentType: "application/json",
             data: JSON.stringify({
@@ -19,7 +19,7 @@ $(function () {
                 location.reload();
             },
             error: function (data) {
-                console.error("Error creating calendar: " + data);
+                console.error("Error creating poll: " + data);
             },
         });
     });

@@ -7,7 +7,7 @@ $else
 
 <br>
 $if isJust maybeUserId
-    <form #new-calendar-form .form-inline>
+    <form #new-object-form .form-inline autocomplete="off">
         <input #new-calendar .form-control type="text" placeholder="New calendar name..." required>
         <button .btn-default type="submit">
             Create
