@@ -1,5 +1,5 @@
 $(function () {
-    $('.radio').click(function () {
+    $('.my-vote').click(function () {
         let input = $(this).prev();
         $.ajax({
             url: '@{ConsensusR pollId}',
@@ -13,8 +13,8 @@ $(function () {
             success: function (data) {
                 console.log(data);
             },
-            error: function (data) {
-                console.error("Error voting in a poll: " + data);
+            error: function (textStatus, errorThrown, jqXHR) {
+                console.error("Error voting in a poll:", textStatus, errorThrown, jqXHR);
             }
         });
     });
@@ -38,8 +38,24 @@ $(function () {
                 console.log(data);
                 location.reload();
             },
-            error: function (data) {
-                console.error("Error creating choice: " + data);
+            error: function (textStatus, errorThrown, jqXHR) {
+                console.error("Error creating choice:", textStatus, errorThrown, jqXHR);
+            },
+        });
+    });
+    $("#finish-poll").submit(function (event) {
+        event.preventDefault();
+
+        $.ajax({
+            url: '@{ConsensusR pollId}',
+            type: 'PATCH',
+            contentType: "application/json",
+            success: function (data) {
+                console.log(data);
+                location.reload();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("Error finalising the poll:", textStatus, errorThrown, jqXHR);
             },
         });
     });

@@ -20,6 +20,31 @@ getConsensusAllR = do
         setTitle "Consensus"
         $(widgetFile "consensus-all")
 
+-- | Add a new poll.
+postConsensusAllR :: Handler Value
+postConsensusAllR = do
+    request <- requireJsonBody
+    let parser = withObject "request" $ \o -> o .: "name"
+    let maybeName = parseMaybe parser request :: Maybe Text
+    name <- maybe (invalidArgs ["`name` required"]) return maybeName
+
+    _ <- runDB $ insert $ Poll name Ongoing
+    return $ object ["success" .= True]
+
+-- Helpers for poll state
+isActionable :: Poll -> Bool
+isActionable poll = pollState poll /= Finished
+
+isOpen :: Poll -> Bool
+isOpen poll = pollState poll /= Ongoing
+
+getActionable :: PollId -> Handler Poll
+getActionable pollId = do
+    poll <- runDB $ get404 pollId
+    if isActionable poll -- yay imperative style
+    then return poll
+    else invalidArgs ["poll has ended"]
+
 -- | Produces a poll view.
 getConsensusR :: PollId -> Handler Html
 getConsensusR pollId = do
@@ -28,10 +53,9 @@ getConsensusR pollId = do
         Just (Entity _ record) -> return record
         _ -> notFound
     maybeUserId <- maybeAuthId
-    let open = pollState poll /= Finished
 
     choices' <- runDB $ selectList [ChoicePollId ==. pollId] [] -- unsorted
-    allVotes' <- runDB $ case open of
+    allVotes' <- runDB $ case isOpen poll of
         True -> rawSql
           "select ?? \
           \from vote join choice \
@@ -76,6 +100,7 @@ weight _ = 0
 postConsensusR :: PollId -> Handler Value
 postConsensusR pollId = do
     (Entity userId _) <- requireAuth
+    _ <- getActionable pollId
     request <- requireJsonBody
     let parser = withObject "request" $ \o -> (,) <$> o .: "choice_id" <*> o .: "value"
     let maybeArgs = parseMaybe parser request :: Maybe (ChoiceId, Int)
@@ -91,24 +116,21 @@ postConsensusR pollId = do
     _ <- runDB $ upsert vote [VoteValue =. value]
     return $ object ["success" .= True]
 
--- | Add a new poll.
-postConsensusAllR :: Handler Value
-postConsensusAllR = do
-    request <- requireJsonBody
-    let parser = withObject "request" $ \o -> o .: "name"
-    let maybeName = parseMaybe parser request :: Maybe Text
-    name <- maybe (invalidArgs ["`name` required"]) return maybeName
-
-    _ <- runDB $ insert $ Poll name Ongoing
-    return $ object ["success" .= True]
-
 -- | Add a new option. Accepts body in the form {"name": "Option Name"}.
 putConsensusR :: PollId -> Handler Value
 putConsensusR pollId = do
+    _ <- getActionable pollId
     request <- requireJsonBody
     let parser = withObject "request" $ \o -> o .: "name"
     let maybeName = parseMaybe parser request :: Maybe Text
     name <- maybe (invalidArgs ["`name` required"]) return maybeName
 
     _ <- runDB $ insert $ Choice name pollId
+    return $ object ["success" .= True]
+
+-- | Finalise a poll.
+patchConsensusR :: PollId -> Handler Value
+patchConsensusR pollId = do
+    _ <- getActionable pollId
+    _ <- runDB $ update pollId [PollState =. Finished]
     return $ object ["success" .= True]

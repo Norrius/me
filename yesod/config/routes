@@ -16,4 +16,4 @@
 /calendar/#CalendarId/#Integer/#Int CalendarMonthR GET
 
 /consensus ConsensusAllR GET POST
-/consensus/#PollId ConsensusR GET POST PUT
+/consensus/#PollId ConsensusR GET POST PUT PATCH

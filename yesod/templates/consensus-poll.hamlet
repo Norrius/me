@@ -10,39 +10,49 @@
                     My Vote
             $forall (Entity _ user) <- users
                 <th>#{userName user}
-            $if open
+            $if isOpen poll
                 <th>
                     Total
         $forall choice <- choices
             <tr>
                 <th scope="row">#{(choiceName . entityVal) choice}
                     $if isJust maybeUserId
-                        <td>
-                            $# Firefox hack to disable form persistence:
-                            <form autocomplete="off">
-                                $with vote <- Map.lookupDefault 0 (entityKey choice) myVotesMap
-                                    <label .option>
-                                        <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="-1" :vote == -1:checked>
-                                        <span .radio class="v-1">
-                                    <label .option>
-                                        <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="0" :vote == 0:checked>
-                                        <span .radio class="v0">
-                                    <label .option>
-                                        <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="1" :vote == 1:checked>
-                                        <span .radio class="v1">
+                        $with vote <- Map.lookupDefault 0 (entityKey choice) myVotesMap
+                            <td>
+                                $if isActionable poll
+                                    $# Firefox hack to disable form persistence:
+                                    <form autocomplete="off">
+                                        <label .option>
+                                            <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="-1" :vote == -1:checked>
+                                            <span .radio.my-vote class="v-1">
+                                        <label .option>
+                                            <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="0" :vote == 0:checked>
+                                            <span .radio.my-vote class="v0">
+                                        <label .option>
+                                            <input type="radio" name="#{(fromSqlKey . entityKey) choice}" value="1" :vote == 1:checked>
+                                            <span .radio.my-vote class="v1">
+                                $else
+                                    <span .radio.other-vote class="v#{vote}">
                 $forall (Entity userId _) <- users
                     $with vote <- Map.lookupDefault 0 (entityKey choice, userId) otherVotesMap
                         <td>
                             <span .radio.other-vote class="v#{vote}">
-                $if open
+                $if isOpen poll
                     <td>
                         #{Map.lookupDefault 0 (entityKey choice) totalsMap}
     <br>
-    $if isJust maybeUserId
+    $if not (isActionable poll)
+        <p>
+            This poll has ended.
+    $elseif isJust maybeUserId
         <form #new-object-form .form-inline>
             <input #new-choice .form-control type="text" placeholder="New option..." required>
             <button .btn-default type="submit">
                 Add option
+        <p>
+        <form #finish-poll .form-inline>
+            <button .btn-warning type="submit">
+                End poll and show results
     $else
         <p>
             Log in to vote!
