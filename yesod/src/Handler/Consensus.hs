@@ -28,13 +28,20 @@ getConsensusR pollId = do
         Just (Entity _ record) -> return record
         _ -> notFound
     maybeUserId <- maybeAuthId
+    let open = pollState poll /= Finished
 
     choices' <- runDB $ selectList [ChoicePollId ==. pollId] [] -- unsorted
-    allVotes' <- runDB $ rawSql
-        "select ?? \
-        \from vote join choice \
-          \on vote.choice_id = choice.id \
-        \where choice.poll_id = ?" [toPersistValue pollId]
+    allVotes' <- runDB $ case open of
+        True -> rawSql
+          "select ?? \
+          \from vote join choice \
+            \on vote.choice_id = choice.id \
+          \where choice.poll_id = ?" [toPersistValue pollId]
+        False -> maybe (return []) (\userId -> rawSql -- hide votes from other users
+          "select ?? \
+          \from vote join choice \
+            \on vote.choice_id = choice.id \
+          \where choice.poll_id = ? and vote.user_id = ?" [toPersistValue pollId, toPersistValue userId]) maybeUserId
     let allVotes = map entityVal allVotes' :: [Vote]
         (myVotes, otherVotes) = partition ((maybeUserId ==) . Just . voteUserId) allVotes
         userIds = Data.List.nub $ map voteUserId otherVotes -- O(n^2)
@@ -92,7 +99,7 @@ postConsensusAllR = do
     let maybeName = parseMaybe parser request :: Maybe Text
     name <- maybe (invalidArgs ["`name` required"]) return maybeName
 
-    _ <- runDB $ insert $ Poll name
+    _ <- runDB $ insert $ Poll name Ongoing
     return $ object ["success" .= True]
 
 -- | Add a new option. Accepts body in the form {"name": "Option Name"}.

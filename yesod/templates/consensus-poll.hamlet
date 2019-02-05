@@ -3,14 +3,16 @@
     <br>
     <table .table-bordered .table-hover .table-condensed>
         <tr>
-            <td>
+            <th>
+                Option
             $if isJust maybeUserId
                 <th>
                     My Vote
             $forall (Entity _ user) <- users
                 <th>#{userName user}
-            <th>
-                Total
+            $if open
+                <th>
+                    Total
         $forall choice <- choices
             <tr>
                 <th scope="row">#{(choiceName . entityVal) choice}
@@ -32,8 +34,9 @@
                     $with vote <- Map.lookupDefault 0 (entityKey choice, userId) otherVotesMap
                         <td>
                             <span .radio.other-vote class="v#{vote}">
-                <td>
-                    #{Map.lookupDefault 0 (entityKey choice) totalsMap}
+                $if open
+                    <td>
+                        #{Map.lookupDefault 0 (entityKey choice) totalsMap}
     <br>
     $if isJust maybeUserId
         <form #new-object-form .form-inline>

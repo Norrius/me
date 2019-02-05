@@ -15,6 +15,7 @@ CalendarEvent
 
 Poll
     name Text
+    state PollState
     deriving Show
 Choice
     name Text
